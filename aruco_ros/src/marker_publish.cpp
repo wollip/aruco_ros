@@ -32,7 +32,11 @@ or implied, of Rafael Muñoz Salinas.
 * @brief Modified copy of simple_single.cpp to publish all markers visible
 * (modified by Josh Langsfeld, 2014)
 */
-
+/*
+#define AKPI 3.14159265
+#define AKTAU AKPI*2
+#define REFANGLE(x) ((x>AKPI) ? x-AKTAU : (x<-AKPI) ? x + AKTAU : x ) 
+*/
 #include <iostream>
 #include <aruco/aruco.h>
 #include <aruco/cvdrawingutils.h>
@@ -46,6 +50,10 @@ or implied, of Rafael Muñoz Salinas.
 #include <aruco_msgs/MarkerArray.h>
 #include <tf/transform_listener.h>
 #include <std_msgs/UInt32MultiArray.h>
+#include <tf2_ros/transform_broadcaster.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include "tf2/transform_datatypes.h"
+
 
 class ArucoMarkerPublisher
 {
@@ -183,6 +191,26 @@ public:
           for(size_t i=0; i<markers_.size(); ++i)
           {
             aruco_msgs::Marker & marker_i = marker_msg_->markers.at(i);
+          /* 
+            tf2::Transform to_ros_tf; 
+            tf2::convert( marker_i.pose.pose, to_ros_tf);
+
+            tf2::Quaternion q = to_ros_tf.getRotation();
+            tf2::Matrix3x3 m(q);
+            tf2::Vector3 translation( 0,0,0);
+            double r, p, y;
+            double a,b,c;
+            m.getRPY(r,p,y);
+            a = REFANGLE( p + AKPI );
+            b = REFANGLE( -r - AKPI/2 );
+            c = REFANGLE( y + AKPI/2 );  
+            m.setRPY(a,b,c);
+            ROS_INFO_STREAM( r << " " << p << " " << y << "; " << a << " " << b << " " << c );
+            m.getRotation(q);
+            to_ros_tf.setRotation(q);
+            
+            tf2::toMsg( to_ros_tf, marker_i.pose.pose );
+            */ 
             marker_i.header.stamp = curr_stamp;
             marker_i.id = markers_.at(i).id;
             marker_i.confidence = 1.0;
